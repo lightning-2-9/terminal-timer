@@ -2,11 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 int run_error_check(int argc, char *argv[]);
+void flag_parser(int argc, char *argv[]);
+
+static bool M_FLAG = false;
+static char *M_FLAG_VALUE = "\0"; 
 
 int main(int argc, char *argv[]) {
+	// Check the flags passed by user
+	flag_parser(argc, argv);
 	// Value user entered as int
 	int seconds = run_error_check(argc, argv);
 
@@ -15,15 +22,20 @@ int main(int argc, char *argv[]) {
 		fflush(stdout);
 		sleep(1);
 	}
-	printf("\033[2K\rTime's up!\n");
+	if (!M_FLAG) {
+		printf("\033[2K\rTime's up!\n");
+	}
+	else {
+		printf("\033[2K\r%s\n", M_FLAG_VALUE);
+	}
 
 	return 0;
 }
 
 int run_error_check(int argc, char *argv[]) {
-	// Check for only 1 argument
+	// Check for only 2|4 arguments
 	// Do this check before assigning seconds
-	if (argc != 2) {
+	if (argc != 2 && argc != 4) {
 		printf("You should be entering a single value!\n");
 		exit(1);
 	}
@@ -43,3 +55,16 @@ int run_error_check(int argc, char *argv[]) {
 	}
 	return seconds;
 }
+
+void flag_parser(int argc, char *argv[]) {
+	for (int i = 0; i < argc; i++) {
+		if (argv[i][0] == '-') {
+			if (argv[i][1] == 'm') {
+				M_FLAG = true;
+				M_FLAG_VALUE = argv[i+1];
+				return;
+			}
+		}
+	}
+}
+
