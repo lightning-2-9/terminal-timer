@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -O2
 all: timer
 
 timer: timer.c
-	$(CC) $(CFLAGS) -o timer timer.c
+	$(CC) $(CFLAGS) -o tt timer.c
 
 clean:
-	rm -f timer
+	rm -f tt
