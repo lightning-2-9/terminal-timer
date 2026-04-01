@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <math.h>
 
+#define PI 3.14159265358979323846
+
 int run_error_check(int argc, char *argv[]);
 void flag_parser(int argc, char *argv[]);
 void beep();
@@ -41,9 +43,20 @@ int main(int argc, char *argv[]) {
 }
 
 int run_error_check(int argc, char *argv[]) {
-	// Check for only 2|3|4|5 arguments
 	// Do this check before assigning seconds
-	if ((argc < 2 || argc > 5)) {
+	if (argc < 2) {
+		printf("You look like you know what you're doing...\n\nUsage: tt <seconds> [OPTIONS]\n");
+		printf("Currently supported: -a, -m <message>\n");
+		exit(5);
+	}
+	if (argc > 5) {
+		printf("Trying something fishy, eh?\n");
+		exit(6);
+	}
+
+	bool FLAG_KNOWN = argv[1][1] == 'a' || argv[1][1] == 'm';
+	bool INVALID_ARG = !isdigit(argv[1][0]);
+	if (INVALID_ARG && FLAG_KNOWN) {
 		printf("What seconds?\n");
 		exit(1);
 	}
@@ -51,7 +64,7 @@ int run_error_check(int argc, char *argv[]) {
 	int start = (argv[1][0] == '-') ? 1 : 0; // Check if first char is -; If yes then skip
     for (int i = start, n = strlen(argv[1]); i < n; i++) {
 		if (!isdigit(argv[1][i])) {
-			printf("I don't understand.\n");
+			printf("That's not even close to a number.\n");
 			exit(2);
 		}
 	}
@@ -73,7 +86,7 @@ void flag_parser(int argc, char *argv[]) {
 					M_FLAG_VALUE = argv[i+1];
 				} else {
 					printf("You forgot the message you muppet.\n");
-					exit(0);
+					exit(4);
 				}
 			}
 			if (argv[i][1] == 'a') {
@@ -87,7 +100,7 @@ void beep() {
 	FILE *dsp = fopen("/dev/dsp", "wb");
 	if (!dsp) {
 		printf("No /dev/dsp found. You're not caveman enough.\n");
-		return;
+		exit(5);
 	}
 
 	int sample_rate = 8000;
@@ -97,7 +110,7 @@ void beep() {
 
 	for (int i = 0; i < samples; i++) {
 		unsigned char sample = (unsigned char)(
-			127.5 + 127.5 * sin(2.0 * M_PI * freq * i / sample_rate)
+			127.5 + 127.5 * sin(2.0 * PI * freq * i / sample_rate)
 		);
 		fwrite(&sample, 1, 1, dsp);
 	}
