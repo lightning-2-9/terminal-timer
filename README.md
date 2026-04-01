@@ -18,6 +18,11 @@ $ ./tt 300 -m "Check the oven"
 ```
 Same thing, but yells something useful at you instead.
 
+```bash
+$ ./tt 9000 -a
+```
+Beeps when done if you're oldschool enough.
+
 ## Build:
 ```C
 $ make

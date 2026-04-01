@@ -4,12 +4,16 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <math.h>
 
 int run_error_check(int argc, char *argv[]);
 void flag_parser(int argc, char *argv[]);
+void beep();
+void hangup();
 
 static bool M_FLAG = false;
 static char *M_FLAG_VALUE = "\0"; 
+static bool A_FLAG = false;
 
 int main(int argc, char *argv[]) {
 	// Check the flags passed by user
@@ -28,14 +32,17 @@ int main(int argc, char *argv[]) {
 	else {
 		printf("\033[2K\r%s\n", M_FLAG_VALUE);
 	}
+	if (A_FLAG) {
+		hangup();
+	}
 
 	return 0;
 }
 
 int run_error_check(int argc, char *argv[]) {
-	// Check for only 2|4 arguments
+	// Check for only 2|3|4|5 arguments
 	// Do this check before assigning seconds
-	if (argc != 2 && argc != 4) {
+	if ((argc < 2 || argc > 5)) {
 		printf("What seconds?\n");
 		exit(1);
 	}
@@ -61,10 +68,44 @@ void flag_parser(int argc, char *argv[]) {
 		if (argv[i][0] == '-') {
 			if (argv[i][1] == 'm') {
 				M_FLAG = true;
-				M_FLAG_VALUE = argv[i+1];
-				return;
+				if (argv[i+1]) {
+					M_FLAG_VALUE = argv[i+1];
+				} else {
+					printf("You forgot the message you muppet.\n");
+					exit(0);
+				}
+			}
+			if (argv[i][1] == 'a') {
+				A_FLAG = true;
 			}
 		}
 	}
 }
 
+void beep() {
+	FILE *dsp = fopen("/dev/dsp", "wb");
+	if (!dsp) {
+		printf("No /dev/dsp found. You're not caveman enough.\n");
+		return;
+	}
+
+	int sample_rate = 8000;
+	float freq = 440.0;      // standard A note
+	float duration = 0.5;    // half second
+	int samples = (int)(sample_rate * duration);
+
+	for (int i = 0; i < samples; i++) {
+		unsigned char sample = (unsigned char)(
+			127.5 + 127.5 * sin(2.0 * M_PI * freq * i / sample_rate)
+		);
+		fwrite(&sample, 1, 1, dsp);
+	}
+	fclose(dsp);
+}
+
+void hangup() {
+	for (int i = 0; i < 5; i++) {
+		beep();
+		usleep(500000); // 0.5 seconds
+	}
+}
