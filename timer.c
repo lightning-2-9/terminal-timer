@@ -22,7 +22,8 @@ int main(int argc, char *argv[]) {
 	int seconds = run_error_check(argc, argv);
 
 	for (int i = seconds; i > 0; i--) {
-		printf("\033[2K\rTimer was set for %i seconds", i); // \033[2K clears the line
+		const char* label = (i == 1) ? "second" : "seconds";
+		printf("\033[2K\r%i %s remaining", i, label); // \033[2K clears the line
 		fflush(stdout);
 		sleep(1);
 	}
